@@ -99,4 +99,25 @@ export interface Translation {
   error: string
   noMatrices: string
   addMatrixToStart: string
+
+  // PLY Export specific
+  pointDensity: string
+  meshQuality: string
+  previewQuality: string
+  standardQuality: string
+  highQuality: string
+  ultraQuality: string
+  customQuality: string
+  totalPoints: string
+  exportPoints: string
+  samplingRatio: string
+  estimatedSize: string
+  meshRecommendations: string
+  recommendedAlgorithms: string
+  suitableFor: string
+  softwareCompatibility: string
+  meshGenerationSoftware: string
+  threeDSoftwareImport: string
+  highPointCountWarning: string
+  exportPointsButton: string
 }
