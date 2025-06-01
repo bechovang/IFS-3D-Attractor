@@ -48,33 +48,40 @@ function BezierSurface() {
 
 // Thêm component AxesHelper
 function AxesHelper() {
+  const axesGeometry = useMemo(() => {
+    // X Axis - Red
+    const xGeometry = new THREE.BufferGeometry()
+    xGeometry.setAttribute("position", new THREE.Float32BufferAttribute([-20, 0, 0, 20, 0, 0], 3))
+
+    // Y Axis - Green
+    const yGeometry = new THREE.BufferGeometry()
+    yGeometry.setAttribute("position", new THREE.Float32BufferAttribute([0, -20, 0, 0, 20, 0], 3))
+
+    // Z Axis - Blue
+    const zGeometry = new THREE.BufferGeometry()
+    zGeometry.setAttribute("position", new THREE.Float32BufferAttribute([0, 0, -20, 0, 0, 20], 3))
+
+    return { xGeometry, yGeometry, zGeometry }
+  }, [])
+
   return (
     <group>
       {/* X Axis - Red */}
-      <line>
-        <bufferGeometry>
-          <float32BufferAttribute attach="attributes-position" args={[new Float32Array([-20, 0, 0, 20, 0, 0]), 3]} />
-        </bufferGeometry>
+      <line geometry={axesGeometry.xGeometry}>
         <lineBasicMaterial color="red" />
       </line>
 
       {/* Y Axis - Green */}
-      <line>
-        <bufferGeometry>
-          <float32BufferAttribute attach="attributes-position" args={[new Float32Array([0, -20, 0, 0, 20, 0]), 3]} />
-        </bufferGeometry>
+      <line geometry={axesGeometry.yGeometry}>
         <lineBasicMaterial color="green" />
       </line>
 
       {/* Z Axis - Blue */}
-      <line>
-        <bufferGeometry>
-          <float32BufferAttribute attach="attributes-position" args={[new Float32Array([0, 0, -20, 0, 0, 20]), 3]} />
-        </bufferGeometry>
+      <line geometry={axesGeometry.zGeometry}>
         <lineBasicMaterial color="blue" />
       </line>
 
-      {/* Axis Labels */}
+      {/* Axis Labels using spheres */}
       <mesh position={[21, 0, 0]}>
         <sphereGeometry args={[0.3, 8, 8]} />
         <meshBasicMaterial color="red" />
@@ -140,8 +147,9 @@ function OptimizedPointCloud({
   )
 }
 
+// Thêm darkMode vào AttractorCanvas
 export default function AttractorCanvas() {
-  const { attractorPoints, pointColors, settings, isHighQualityRendering, setHighQualityRendering } = useIFS()
+  const { attractorPoints, pointColors, settings, isHighQualityRendering, setHighQualityRendering, darkMode } = useIFS()
   const { gl, camera, controls } = useThree()
 
   // Detect user interaction to exit high quality rendering mode
@@ -190,10 +198,13 @@ export default function AttractorCanvas() {
     [],
   )
 
+  // Sử dụng màu nền dựa trên chế độ dark mode
+  const backgroundColor = darkMode ? settings.backgroundColorDark : settings.backgroundColor
+
   if (!attractorPoints || !pointColors) {
     return (
       <>
-        <color attach="background" args={[settings.backgroundColor]} />
+        <color attach="background" args={[backgroundColor]} />
         {lightingSetup}
         <AxesHelper />
         {settings.showBezierSurface && <BezierSurface />}
@@ -207,7 +218,7 @@ export default function AttractorCanvas() {
 
   return (
     <>
-      <color attach="background" args={[settings.backgroundColor]} />
+      <color attach="background" args={[backgroundColor]} />
       {lightingSetup}
 
       {/* Only show axes and bezier surface when not in high quality rendering */}

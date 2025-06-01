@@ -10,6 +10,7 @@ interface IFSContextType {
   attractorPoints: Float32Array | null
   pointColors: Float32Array | null
   isHighQualityRendering: boolean
+  darkMode: boolean
   addMatrix: (newMatrix?: Partial<IFSMatrix>) => void
   removeMatrix: (id: string) => void
   updateMatrix: (id: string, matrix: Partial<IFSMatrix>) => void
@@ -18,6 +19,7 @@ interface IFSContextType {
   clearAll: () => void
   loadPreset: (preset: string) => void
   setHighQualityRendering: (value: boolean) => void
+  toggleDarkMode: () => void
 }
 
 const IFSContext = createContext<IFSContextType | undefined>(undefined)
@@ -111,11 +113,12 @@ const defaultSettings: IFSSettings = {
   autoNormalize: true,
   pointSize: 3.0,
   colorMode: "function",
-  backgroundColor: "#ffffff", // White background
+  backgroundColor: "#f8fafc", // Light gray background
+  backgroundColorDark: "#111827", // Dark background (gray-900)
   pointColor: "#00ff88",
   showBezierSurface: false,
   autoRotate: false,
-  orbitControlsEnabled: true, // Enable dragging by default
+  orbitControlsEnabled: true,
   volumetricOpacity: 0.3,
   volumetricGamma: 1.8,
   volumetricIntensity: 1.2,
@@ -128,6 +131,11 @@ export function IFSProvider({ children }: { children: ReactNode }) {
   const [attractorPoints, setAttractorPoints] = useState<Float32Array | null>(null)
   const [pointColors, setPointColors] = useState<Float32Array | null>(null)
   const [isHighQualityRendering, setIsHighQualityRendering] = useState(false)
+  const [darkMode, setDarkMode] = useState(false)
+
+  const toggleDarkMode = useCallback(() => {
+    setDarkMode((prev) => !prev)
+  }, [])
 
   const addMatrix = useCallback(
     (newMatrix?: Partial<IFSMatrix>) => {
@@ -368,6 +376,7 @@ export function IFSProvider({ children }: { children: ReactNode }) {
         attractorPoints,
         pointColors,
         isHighQualityRendering,
+        darkMode,
         addMatrix,
         removeMatrix,
         updateMatrix,
@@ -376,6 +385,7 @@ export function IFSProvider({ children }: { children: ReactNode }) {
         clearAll,
         loadPreset,
         setHighQualityRendering: setHighQualityRenderingCallback,
+        toggleDarkMode,
       }}
     >
       {children}

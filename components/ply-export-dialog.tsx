@@ -47,8 +47,7 @@ export default function PLYExportDialog({ isOpen, onClose }: PLYExportDialogProp
     try {
       const finalFilename = filename.endsWith(".ply") ? filename : `${filename}.ply`
 
-      // Đảm bảo truyền đúng dữ liệu point cloud
-      const result = exportPLY(attractorPoints, pointColors || undefined, {
+      const result = exportPLY(attractorPoints, pointColors, {
         filename: finalFilename,
         includeColors: includeColors && hasColors,
         format,

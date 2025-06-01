@@ -52,9 +52,9 @@ property uchar blue`
     const z = (positions[i * 3 + 2] * scale).toFixed(6)
 
     if (hasColors && colors) {
-      const r = Math.floor(Math.min(255, Math.max(0, (colors[i * 3 + 0] || 0) * 255)))
-      const g = Math.floor(Math.min(255, Math.max(0, (colors[i * 3 + 1] || 0) * 255)))
-      const b = Math.floor(Math.min(255, Math.max(0, (colors[i * 3 + 2] || 0) * 255)))
+      const r = Math.floor(Math.min(255, Math.max(0, (colors[i * 3 + 0] || 1) * 255)))
+      const g = Math.floor(Math.min(255, Math.max(0, (colors[i * 3 + 1] || 1) * 255)))
+      const b = Math.floor(Math.min(255, Math.max(0, (colors[i * 3 + 2] || 1) * 255)))
       body += `${x} ${y} ${z} ${r} ${g} ${b}\n`
     } else {
       body += `${x} ${y} ${z}\n`
@@ -125,9 +125,9 @@ property uchar blue`
 
     if (hasColors && colors) {
       // Write color (3 uchars)
-      const r = Math.floor(Math.min(255, Math.max(0, (colors[i * 3 + 0] || 0) * 255)))
-      const g = Math.floor(Math.min(255, Math.max(0, (colors[i * 3 + 1] || 0) * 255)))
-      const b = Math.floor(Math.min(255, Math.max(0, (colors[i * 3 + 2] || 0) * 255)))
+      const r = Math.floor(Math.min(255, Math.max(0, (colors[i * 3 + 0] || 1) * 255)))
+      const g = Math.floor(Math.min(255, Math.max(0, (colors[i * 3 + 1] || 1) * 255)))
+      const b = Math.floor(Math.min(255, Math.max(0, (colors[i * 3 + 2] || 1) * 255)))
 
       view.setUint8(offset, r)
       view.setUint8(offset + 1, g)

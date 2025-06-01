@@ -27,10 +27,14 @@ export interface IFSSettings {
   pointSize: number
   colorMode: "function" | "height" | "solid" | "rainbow"
   backgroundColor: string
+  backgroundColorDark: string
   pointColor: string
   showBezierSurface: boolean
   autoRotate: boolean
   orbitControlsEnabled: boolean
+  volumetricOpacity?: number
+  volumetricGamma?: number
+  volumetricIntensity?: number
 }
 
 export interface Point3D {
