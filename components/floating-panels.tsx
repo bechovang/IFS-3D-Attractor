@@ -209,7 +209,7 @@ export default function FloatingPanels() {
         )}
 
         {activePanel === "matrix" && (
-          <FloatingPanel title={`🔢 ${t.matrixInput}`} onClose={() => setActivePanel(null)} position="bottom">
+          <FloatingPanel title={`🔢 ${t.matrixInput}`} onClose={() => setActivePanel(null)} position="left">
             <IFSMatrixEditor />
           </FloatingPanel>
         )}

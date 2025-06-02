@@ -122,6 +122,13 @@ export const translations: Record<Language, Translation> = {
     threeDSoftwareImport: "3D Software Import",
     highPointCountWarning: "High Point Count Warning",
     exportPointsButton: "Export {count} Points",
+    export2MPoints: "Export 2M Points",
+    highDensityExport: "High-Density Export",
+    chaosGameGeneration: "Chaos Game Generation",
+    directFileOutput: "Direct file output, no rendering required",
+    processingTime: "Processing time: 30-60 seconds",
+    binaryPLYFormat: "Binary PLY format (~200MB file)",
+    requiresEnabledMatrix: "Requires at least one enabled matrix",
   },
 
   vi: {
@@ -245,6 +252,13 @@ export const translations: Record<Language, Translation> = {
     threeDSoftwareImport: "Nhập vào phần mềm 3D",
     highPointCountWarning: "Cảnh báo số điểm cao",
     exportPointsButton: "Xuất {count} điểm",
+    export2MPoints: "Xuất 2M điểm",
+    highDensityExport: "Xuất mật độ cao",
+    chaosGameGeneration: "Tạo bằng Chaos Game",
+    directFileOutput: "Xuất file trực tiếp, không cần render",
+    processingTime: "Thời gian xử lý: 30-60 giây",
+    binaryPLYFormat: "Định dạng PLY nhị phân (~200MB)",
+    requiresEnabledMatrix: "Cần ít nhất một ma trận được kích hoạt",
   },
 
   zh: {
@@ -368,6 +382,13 @@ export const translations: Record<Language, Translation> = {
     threeDSoftwareImport: "3D软件导入",
     highPointCountWarning: "高点数警告",
     exportPointsButton: "导出 {count} 点",
+    export2MPoints: "导出 2M 点",
+    highDensityExport: "高密度导出",
+    chaosGameGeneration: "Chaos Game 生成",
+    directFileOutput: "直接文件输出，无需渲染",
+    processingTime: "处理时间：30-60 秒",
+    binaryPLYFormat: "二进制 PLY 格式（~200MB 文件）",
+    requiresEnabledMatrix: "至少需要一个启用的矩阵",
   },
 
   ja: {
@@ -491,6 +512,13 @@ export const translations: Record<Language, Translation> = {
     threeDSoftwareImport: "3Dソフトウェアインポート",
     highPointCountWarning: "高ポイント数警告",
     exportPointsButton: "{count} ポイントをエクスポート",
+    export2MPoints: "2Mポイントをエクスポート",
+    highDensityExport: "高密度エクスポート",
+    chaosGameGeneration: "カオスゲーム生成",
+    directFileOutput: "ダイレクトファイル出力、レンダリング不要",
+    processingTime: "処理時間：30〜60秒",
+    binaryPLYFormat: "バイナリPLY形式（〜200MBファイル）",
+    requiresEnabledMatrix: "少なくとも1つの有効なマトリックスが必要です",
   },
 
   ko: {
@@ -614,6 +642,13 @@ export const translations: Record<Language, Translation> = {
     threeDSoftwareImport: "3D 소프트웨어 가져오기",
     highPointCountWarning: "높은 점 수 경고",
     exportPointsButton: "{count}개 점 내보내기",
+    export2MPoints: "2백만 개 점 내보내기",
+    highDensityExport: "고밀도 내보내기",
+    chaosGameGeneration: "카오스 게임 생성",
+    directFileOutput: "직접 파일 출력, 렌더링 불필요",
+    processingTime: "처리 시간: 30-60초",
+    binaryPLYFormat: "바이너리 PLY 형식(~200MB 파일)",
+    requiresEnabledMatrix: "최소한 하나의 활성화된 매트릭스가 필요합니다",
   },
 
   es: {
@@ -739,6 +774,13 @@ export const translations: Record<Language, Translation> = {
     threeDSoftwareImport: "Importación de software 3D",
     highPointCountWarning: "Advertencia de alto número de puntos",
     exportPointsButton: "Exportar {count} puntos",
+    export2MPoints: "Exportar 2M Puntos",
+    highDensityExport: "Exportación de Alta Densidad",
+    chaosGameGeneration: "Generación de Juego del Caos",
+    directFileOutput: "Salida de archivo directa, no se requiere renderizado",
+    processingTime: "Tiempo de procesamiento: 30-60 segundos",
+    binaryPLYFormat: "Formato PLY binario (archivo de ~200MB)",
+    requiresEnabledMatrix: "Requiere al menos una matriz habilitada",
   },
 
   fr: {
@@ -864,6 +906,13 @@ export const translations: Record<Language, Translation> = {
     threeDSoftwareImport: "Importation de logiciel 3D",
     highPointCountWarning: "Avertissement de nombre élevé de points",
     exportPointsButton: "Exporter {count} points",
+    export2MPoints: "Exporter 2M Points",
+    highDensityExport: "Exportation Haute Densité",
+    chaosGameGeneration: "Génération par Jeu du Chaos",
+    directFileOutput: "Sortie de fichier directe, aucun rendu requis",
+    processingTime: "Temps de traitement : 30 à 60 secondes",
+    binaryPLYFormat: "Format PLY binaire (fichier d'environ 200 Mo)",
+    requiresEnabledMatrix: "Nécessite au moins une matrice activée",
   },
 
   de: {
@@ -990,6 +1039,13 @@ export const translations: Record<Language, Translation> = {
     threeDSoftwareImport: "3D-Software-Import",
     highPointCountWarning: "Warnung bei hoher Punktzahl",
     exportPointsButton: "{count} Punkte exportieren",
+    export2MPoints: "2M Punkte exportieren",
+    highDensityExport: "Hochdichter Export",
+    chaosGameGeneration: "Chaosspiel-Generierung",
+    directFileOutput: "Direkte Dateiausgabe, kein Rendering erforderlich",
+    processingTime: "Verarbeitungszeit: 30-60 Sekunden",
+    binaryPLYFormat: "Binäres PLY-Format (~200MB Datei)",
+    requiresEnabledMatrix: "Benötigt mindestens eine aktivierte Matrix",
   },
 
   ru: {
@@ -1114,5 +1170,12 @@ export const translations: Record<Language, Translation> = {
     threeDSoftwareImport: "Импорт 3D программного обеспечения",
     highPointCountWarning: "Предупреждение о большом количестве точек",
     exportPointsButton: "Экспорт {count} точек",
+    export2MPoints: "Экспорт 2M точек",
+    highDensityExport: "Экспорт высокой плотности",
+    chaosGameGeneration: "Генерация хаос-игрой",
+    directFileOutput: "Прямой вывод файла, рендеринг не требуется",
+    processingTime: "Время обработки: 30-60 секунд",
+    binaryPLYFormat: "Бинарный формат PLY (~200MB файл)",
+    requiresEnabledMatrix: "Требуется хотя бы одна включенная матрица",
   },
 }

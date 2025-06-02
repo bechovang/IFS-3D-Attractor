@@ -104,7 +104,7 @@ export default function IFSMatrixEditor() {
             }))
           }
         }}
-        className="h-6 text-xs bg-white border-gray-300"
+        className="h-6 text-xs bg-white border-gray-300 w-14"
         placeholder={placeholder}
         tabIndex={tabIndex}
       />
@@ -190,42 +190,77 @@ export default function IFSMatrixEditor() {
                     </TabsList>
 
                     <TabsContent value="matrix" className="pt-3">
-                      {/* 3x4 Matrix Input */}
-                      <div>
-                        <Label className="text-gray-600 text-xs">3×4 Matrix</Label>
-
-                        {/* Thêm nhãn cho các cột */}
-                        <div className="grid grid-cols-4 gap-1 mt-1 mb-1">
-                          <div className="text-xs text-center text-gray-500">Matrix</div>
-                          <div className="text-xs text-center text-gray-500">Matrix</div>
-                          <div className="text-xs text-center text-gray-500">Matrix</div>
-                          <div className="text-xs text-center text-gray-500">Translation</div>
+                      {/* Compact Matrix Input */}
+                      <div className="bg-white p-3 rounded-lg border border-gray-100">
+                        <div className="flex items-center mb-2">
+                          <span style={{ color: matrix.color }} className="font-semibold text-xs mr-2">
+                            {matrix.name}(x) =
+                          </span>
                         </div>
 
-                        {/* Sắp xếp lại grid để thay đổi thứ tự tab */}
-                        <div className="grid grid-cols-4 gap-1">
-                          {/* Cột 1-3 (Ma trận) */}
-                          <div className="space-y-1">
-                            {renderMatrixInput(matrix, "a", "a", 1)}
-                            {renderMatrixInput(matrix, "b", "b", 4)}
-                            {renderMatrixInput(matrix, "g", "g", 7)}
-                          </div>
-                          <div className="space-y-1">
-                            {renderMatrixInput(matrix, "c", "c", 2)}
-                            {renderMatrixInput(matrix, "d", "d", 5)}
-                            {renderMatrixInput(matrix, "h", "h", 8)}
-                          </div>
-                          <div className="space-y-1">
-                            {renderMatrixInput(matrix, "e", "e", 3)}
-                            {renderMatrixInput(matrix, "f", "f", 6)}
-                            {renderMatrixInput(matrix, "i", "i", 9)}
+                        {/* Matrix equation in compact form */}
+                        <div className="flex flex-col space-y-2">
+                          {/* First row: Matrix multiplication */}
+                          <div className="flex items-center">
+                            <div className="flex items-center mr-2">
+                              <span className="text-xs mr-1">[</span>
+                              <div className="grid grid-cols-3 gap-1">
+                                {renderMatrixInput(matrix, "a", "a", 1)}
+                                {renderMatrixInput(matrix, "c", "c", 2)}
+                                {renderMatrixInput(matrix, "e", "e", 3)}
+                              </div>
+                              <span className="text-xs mx-1">]</span>
+                            </div>
+                            <span className="text-xs mx-1">×</span>
+                            <span className="text-xs mx-1">[x]</span>
+                            <span className="text-xs mx-1">+</span>
+                            <div className="flex items-center">
+                              <span className="text-xs mr-1">[</span>
+                              {renderMatrixInput(matrix, "tx", "tx", 10)}
+                              <span className="text-xs mx-1">]</span>
+                            </div>
                           </div>
 
-                          {/* Cột 4 (Dịch chuyển) */}
-                          <div className="space-y-1">
-                            {renderMatrixInput(matrix, "tx", "tx", 10)}
-                            {renderMatrixInput(matrix, "ty", "ty", 11)}
-                            {renderMatrixInput(matrix, "tz", "tz", 12)}
+                          {/* Second row */}
+                          <div className="flex items-center">
+                            <div className="flex items-center mr-2">
+                              <span className="text-xs mr-1">[</span>
+                              <div className="grid grid-cols-3 gap-1">
+                                {renderMatrixInput(matrix, "b", "b", 4)}
+                                {renderMatrixInput(matrix, "d", "d", 5)}
+                                {renderMatrixInput(matrix, "f", "f", 6)}
+                              </div>
+                              <span className="text-xs mx-1">]</span>
+                            </div>
+                            <span className="text-xs mx-1">×</span>
+                            <span className="text-xs mx-1">[y]</span>
+                            <span className="text-xs mx-1">+</span>
+                            <div className="flex items-center">
+                              <span className="text-xs mr-1">[</span>
+                              {renderMatrixInput(matrix, "ty", "ty", 11)}
+                              <span className="text-xs mx-1">]</span>
+                            </div>
+                          </div>
+
+                          {/* Third row */}
+                          <div className="flex items-center">
+                            <div className="flex items-center mr-2">
+                              <span className="text-xs mr-1">[</span>
+                              <div className="grid grid-cols-3 gap-1">
+                                {renderMatrixInput(matrix, "g", "g", 7)}
+                                {renderMatrixInput(matrix, "h", "h", 8)}
+                                {renderMatrixInput(matrix, "i", "i", 9)}
+                              </div>
+                              <span className="text-xs mx-1">]</span>
+                            </div>
+                            <span className="text-xs mx-1">×</span>
+                            <span className="text-xs mx-1">[z]</span>
+                            <span className="text-xs mx-1">+</span>
+                            <div className="flex items-center">
+                              <span className="text-xs mr-1">[</span>
+                              {renderMatrixInput(matrix, "tz", "tz", 12)}
+                              <span className="text-xs mx-1">]</span>
+                            </div>
                           </div>
                         </div>
                       </div>

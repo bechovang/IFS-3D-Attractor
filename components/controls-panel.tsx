@@ -9,6 +9,7 @@ import { Switch } from "@/components/ui/switch"
 import { Download, Zap, Settings, FileText, Camera } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import PLYExportDialog from "./ply-export-dialog"
+import { exportHighDensityPLY } from "../utils/ply-exporter"
 
 export default function ControlsPanel() {
   const {
@@ -55,6 +56,33 @@ export default function ControlsPanel() {
     setHighQualityRendering(!isHighQualityRendering)
   }
 
+  // Thêm function để xuất 2M điểm
+  const export2MPoints = async () => {
+    if (!matrices || matrices.filter((m) => m.enabled).length === 0) {
+      alert("Please add and enable at least one transformation matrix first.")
+      return
+    }
+
+    try {
+      console.log("Starting 2M points export...")
+
+      const result = exportHighDensityPLY(matrices, {
+        filename: `ifs-2M-points-${Date.now()}.ply`,
+        includeColors: true,
+        format: "binary", // Binary for smaller file size
+        scale: 1.0,
+        targetPoints: 2000000,
+      })
+
+      if (result.success) {
+        alert(`Successfully exported 2M points!\nFile size: ${(result.fileSize / (1024 * 1024)).toFixed(1)} MB`)
+      }
+    } catch (error) {
+      console.error("2M export failed:", error)
+      alert(`Export failed: ${error instanceof Error ? error.message : "Unknown error"}`)
+    }
+  }
+
   return (
     <>
       <div className="space-y-5">
@@ -72,7 +100,7 @@ export default function ControlsPanel() {
         )}
 
         {/* Export and Render Buttons */}
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 gap-2">
           <Button onClick={exportImage} disabled={!attractorPoints} className="bg-blue-600 hover:bg-blue-700" size="sm">
             <Download className="w-4 h-4 mr-2" />
             Export PNG
@@ -85,6 +113,15 @@ export default function ControlsPanel() {
           >
             <FileText className="w-4 h-4 mr-2" />
             Export PLY
+          </Button>
+          <Button
+            onClick={export2MPoints}
+            disabled={!matrices || matrices.filter((m) => m.enabled).length === 0}
+            className="bg-red-600 hover:bg-red-700"
+            size="sm"
+          >
+            <Zap className="w-4 h-4 mr-2" />
+            Export 2M Points
           </Button>
         </div>
 
@@ -304,6 +341,25 @@ export default function ControlsPanel() {
             </div>
           </TabsContent>
         </Tabs>
+
+        {/* Thêm thông tin về 2M export */}
+        <div className="mt-4 pt-4 border-t border-gray-200">
+          <h4 className="text-sm font-semibold text-gray-700 mb-3">High-Density Export</h4>
+
+          <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+            <div className="flex items-center space-x-2 mb-2">
+              <Zap className="w-4 h-4 text-red-600" />
+              <span className="text-sm font-medium text-red-800">2M Points Direct Export</span>
+            </div>
+            <div className="text-xs text-red-700 space-y-1">
+              <div>• Generates 2 million points using IFS Chaos Game</div>
+              <div>• No rendering required, direct file output</div>
+              <div>• Binary PLY format (~200MB file)</div>
+              <div>• Processing time: 30-60 seconds</div>
+              <div>• Requires at least one enabled matrix</div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* PLY Export Dialog */}
