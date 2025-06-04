@@ -1,25 +1,27 @@
-# Maintenance Guide
+# Hướng Dẫn Bảo Trì / Maintenance Guide
 
-This document provides comprehensive guidance for maintaining and developing the IFS 3D Attractor application.
+Tài liệu này cung cấp hướng dẫn toàn diện để bảo trì và phát triển ứng dụng IFS 3D Fractal Explorer.
 
-## 📋 Table of Contents
+*This document provides comprehensive guidance for maintaining and developing the IFS 3D Fractal Explorer application.*
 
-- [Project Structure](#project-structure)
-- [Development Environment](#development-environment)
-- [Code Architecture](#code-architecture)
-- [Testing Strategy](#testing-strategy)
-- [Performance Monitoring](#performance-monitoring)
-- [Deployment Process](#deployment-process)
-- [Troubleshooting](#troubleshooting)
-- [Security Considerations](#security-considerations)
-- [Monitoring and Analytics](#monitoring-and-analytics)
+## 📋 Mục Lục / Table of Contents
 
-## 🏗️ Project Structure
+- [Cấu Trúc Dự Án](#cấu-trúc-dự-án--project-structure)
+- [Môi Trường Phát Triển](#môi-trường-phát-triển--development-environment)
+- [Kiến Trúc Code](#kiến-trúc-code--code-architecture)
+- [Chiến Lược Testing](#chiến-lược-testing--testing-strategy)
+- [Giám Sát Hiệu Suất](#giám-sát-hiệu-suất--performance-monitoring)
+- [Quy Trình Deployment](#quy-trình-deployment--deployment-process)
+- [Khắc Phục Sự Cố](#khắc-phục-sự-cố--troubleshooting)
+- [Bảo Mật](#bảo-mật--security-considerations)
+- [Giám Sát và Phân Tích](#giám-sát-và-phân-tích--monitoring-and-analytics)
 
-### Directory Overview
+## 🏗️ Cấu Trúc Dự Án / Project Structure
+
+### Tổng Quan Thư Mục / Directory Overview
 
 \`\`\`
-ifs-3d-attractor/
+ifs-3d-fractal-explorer/
 ├── app/                          # Next.js App Router
 │   ├── globals.css              # Global styles
 │   ├── layout.tsx               # Root layout
@@ -40,42 +42,46 @@ ifs-3d-attractor/
 │   └── translations.ts
 ├── utils/                       # Utility functions
 │   ├── attractor-math.ts       # Mathematical calculations
-│   └── ply-exporter.ts         # Export functionality
+│   ├── ply-exporter.ts         # PLY export functionality
+│   ├── las-exporter.ts         # LAS/LAZ export functionality
+│   ├── fbx-exporter.ts         # FBX export functionality
+│   └── obj-exporter.ts         # OBJ export functionality
 ├── hooks/                       # Custom React hooks
 ├── public/                      # Static assets
 ├── tests/                       # Test files
 └── docs/                        # Documentation
 \`\`\`
 
-### Key Files and Their Purposes
+### File Quan Trọng / Key Files and Their Purposes
 
-| File | Purpose | Maintenance Notes |
-|------|---------|-------------------|
-| `components/ifs-context.tsx` | Global state management | Critical for app functionality |
-| `components/attractor-canvas.tsx` | 3D rendering logic | Performance-sensitive |
-| `utils/attractor-math.ts` | Mathematical calculations | Requires mathematical expertise |
-| `locales/translations.ts` | Internationalization | Update when adding new languages |
-| `types/ifs.ts` | Type definitions | Keep in sync with data structures |
+| File | Mục Đích / Purpose | Ghi Chú Bảo Trì / Maintenance Notes |
+|------|-------------------|-------------------------------------|
+| `components/ifs-context.tsx` | Quản lý state toàn cục / Global state management | Quan trọng cho chức năng app / Critical for app functionality |
+| `components/attractor-canvas.tsx` | Logic rendering 3D / 3D rendering logic | Nhạy cảm về hiệu suất / Performance-sensitive |
+| `utils/attractor-math.ts` | Tính toán toán học / Mathematical calculations | Cần chuyên môn toán học / Requires mathematical expertise |
+| `locales/translations.ts` | Đa ngôn ngữ / Internationalization | Cập nhật khi thêm ngôn ngữ mới / Update when adding new languages |
+| `types/ifs.ts` | Định nghĩa type / Type definitions | Giữ đồng bộ với cấu trúc dữ liệu / Keep in sync with data structures |
+| `utils/*-exporter.ts` | Chức năng xuất file / Export functionality | Quan trọng cho tính năng xuất / Critical for export features |
 
-## 🛠️ Development Environment
+## 🛠️ Môi Trường Phát Triển / Development Environment
 
-### Required Tools
+### Công Cụ Cần Thiết / Required Tools
 
 \`\`\`bash
-# Node.js (LTS version recommended)
-node --version  # Should be 18.0+
+# Node.js (phiên bản LTS khuyến nghị)
+node --version  # Nên là 18.0+
 
 # Package manager
-npm --version   # or yarn/pnpm
+npm --version   # hoặc yarn/pnpm
 
 # Git
 git --version
 
-# Optional: VS Code with extensions
+# Tùy chọn: VS Code với extensions
 code --list-extensions | grep -E "(typescript|react|tailwind)"
 \`\`\`
 
-### Recommended VS Code Extensions
+### VS Code Extensions Khuyến Nghị / Recommended VS Code Extensions
 
 \`\`\`json
 {
@@ -85,51 +91,53 @@ code --list-extensions | grep -E "(typescript|react|tailwind)"
     "esbenp.prettier-vscode",
     "ms-vscode.vscode-eslint",
     "formulahendry.auto-rename-tag",
-    "christian-kohler.path-intellisense"
+    "christian-kohler.path-intellisense",
+    "ms-vscode.vscode-json"
   ]
 }
 \`\`\`
 
-### Environment Setup
+### Thiết Lập Môi Trường / Environment Setup
 
-1. **Clone and Setup**
+1. **Clone và Setup**
    \`\`\`bash
    git clone <repository-url>
-   cd ifs-3d-attractor
+   cd ifs-3d-fractal-explorer
    npm install
    cp .env.example .env.local
    \`\`\`
 
 2. **Development Scripts**
    \`\`\`bash
-   npm run dev          # Start development server
-   npm run build        # Build for production
-   npm run start        # Start production server
-   npm run lint         # Run ESLint
+   npm run dev          # Khởi động development server
+   npm run build        # Build cho production
+   npm run start        # Khởi động production server
+   npm run lint         # Chạy ESLint
    npm run type-check   # TypeScript type checking
-   npm test             # Run tests
+   npm test             # Chạy tests
+   npm run analyze      # Phân tích bundle size
    \`\`\`
 
 3. **Git Hooks Setup**
    \`\`\`bash
-   # Install husky for git hooks
+   # Cài đặt husky cho git hooks
    npm run prepare
    \`\`\`
 
-## 🏛️ Code Architecture
+## 🏛️ Kiến Trúc Code / Code Architecture
 
-### State Management
+### Quản Lý State / State Management
 
-The application uses React Context for state management:
+Ứng dụng sử dụng React Context cho quản lý state:
 
 \`\`\`typescript
 // Main contexts
-IFSProvider     // Fractal generation and settings
-I18nProvider    // Internationalization
-ThemeProvider   // Dark/light mode
+IFSProvider     // Tạo fractal và cài đặt / Fractal generation and settings
+I18nProvider    // Đa ngôn ngữ / Internationalization
+ThemeProvider   // Chế độ tối/sáng / Dark/light mode
 \`\`\`
 
-### Component Hierarchy
+### Phân Cấp Component / Component Hierarchy
 
 \`\`\`
 App
@@ -140,39 +148,40 @@ App
 │   │   │   ├── ControlsPanel
 │   │   │   ├── MatrixEditor
 │   │   │   ├── PresetPanel
+│   │   │   ├── ExportDialog
 │   │   │   └── HelpPanel
 │   │   └── LoadingSpinner
 │   └── LanguageSelector
 \`\`\`
 
-### Data Flow
+### Luồng Dữ Liệu / Data Flow
 
-1. **User Interaction** → UI Components
+1. **Tương Tác Người Dùng** → UI Components
 2. **UI Components** → Context Actions
 3. **Context Actions** → State Updates
 4. **State Updates** → Re-render Components
-5. **Mathematical Calculations** → Web Workers (if applicable)
+5. **Tính Toán Toán Học** → Web Workers (nếu có)
 
-### Performance Considerations
+### Cân Nhắc Hiệu Suất / Performance Considerations
 
-#### Critical Performance Areas
+#### Khu Vực Hiệu Suất Quan Trọng / Critical Performance Areas
 
 1. **3D Rendering**
-   - Use `useMemo` for expensive calculations
-   - Implement proper cleanup in `useEffect`
-   - Monitor frame rates and adjust quality
+   - Sử dụng `useMemo` cho tính toán đắt đỏ
+   - Implement cleanup đúng cách trong `useEffect`
+   - Giám sát frame rates và điều chỉnh chất lượng
 
 2. **State Updates**
-   - Batch state updates when possible
-   - Use `useCallback` for event handlers
-   - Implement proper dependency arrays
+   - Batch state updates khi có thể
+   - Sử dụng `useCallback` cho event handlers
+   - Implement dependency arrays đúng cách
 
-3. **Memory Management**
-   - Dispose of Three.js objects properly
-   - Clear intervals and timeouts
-   - Remove event listeners in cleanup
+3. **Quản Lý Bộ Nhớ / Memory Management**
+   - Dispose Three.js objects đúng cách
+   - Clear intervals và timeouts
+   - Remove event listeners trong cleanup
 
-#### Code Example: Proper Three.js Cleanup
+#### Ví Dụ Code: Three.js Cleanup Đúng Cách
 
 \`\`\`typescript
 useEffect(() => {
@@ -187,9 +196,9 @@ useEffect(() => {
 }, [])
 \`\`\`
 
-## 🧪 Testing Strategy
+## 🧪 Chiến Lược Testing / Testing Strategy
 
-### Test Structure
+### Cấu Trúc Test / Test Structure
 
 \`\`\`
 tests/
@@ -198,31 +207,34 @@ tests/
 │   └── canvas.js               # Canvas API mocks
 ├── components/                  # Component tests
 │   ├── attractor-canvas.test.tsx
-│   └── floating-panels.test.tsx
+│   ├── floating-panels.test.tsx
+│   └── export-dialog.test.tsx
 ├── utils/                       # Utility tests
 │   ├── attractor-math.test.ts
-│   └── ply-exporter.test.ts
+│   ├── ply-exporter.test.ts
+│   ├── las-exporter.test.ts
+│   └── fbx-exporter.test.ts
 ├── integration/                 # Integration tests
 │   └── fractal-generation.test.ts
 └── e2e/                        # End-to-end tests
     └── user-workflows.test.ts
 \`\`\`
 
-### Testing Guidelines
+### Hướng Dẫn Testing / Testing Guidelines
 
 #### Unit Tests
 \`\`\`typescript
-// Example: Testing mathematical functions
-describe('generateLorenz', () => {
+// Ví dụ: Testing mathematical functions
+describe('generateSierpinski', () => {
   it('should generate correct number of points', () => {
-    const params = { sigma: 10, rho: 28, beta: 8/3, steps: 1000, dt: 0.01 }
-    const points = generateLorenz(params)
+    const params = { iterations: 1000, matrices: [...] }
+    const points = generateSierpinski(params)
     expect(points).toHaveLength(1000)
   })
   
   it('should handle edge cases', () => {
-    const params = { sigma: 0, rho: 0, beta: 0, steps: 10, dt: 0.01 }
-    const points = generateLorenz(params)
+    const params = { iterations: 0, matrices: [] }
+    const points = generateSierpinski(params)
     expect(points).toBeDefined()
   })
 })
@@ -230,19 +242,20 @@ describe('generateLorenz', () => {
 
 #### Component Tests
 \`\`\`typescript
-// Example: Testing React components
+// Ví dụ: Testing React components
 describe('FloatingPanels', () => {
   it('should render all panel buttons', () => {
     render(<FloatingPanels />)
     expect(screen.getByRole('button', { name: /presets/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /controls/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /export/i })).toBeInTheDocument()
   })
 })
 \`\`\`
 
 #### Integration Tests
 \`\`\`typescript
-// Example: Testing complete workflows
+// Ví dụ: Testing complete workflows
 describe('Fractal Generation Workflow', () => {
   it('should generate fractal from preset', async () => {
     const { user } = setup(<App />)
@@ -258,57 +271,57 @@ describe('Fractal Generation Workflow', () => {
 })
 \`\`\`
 
-### Running Tests
+### Chạy Tests / Running Tests
 
 \`\`\`bash
-# Run all tests
+# Chạy tất cả tests
 npm test
 
-# Run tests in watch mode
+# Chạy tests ở chế độ watch
 npm run test:watch
 
-# Run tests with coverage
+# Chạy tests với coverage
 npm run test:coverage
 
-# Run specific test file
+# Chạy test file cụ thể
 npm test -- attractor-math.test.ts
 
-# Run tests matching pattern
+# Chạy tests matching pattern
 npm test -- --testNamePattern="should generate"
 \`\`\`
 
-### Test Coverage Goals
+### Mục Tiêu Test Coverage / Test Coverage Goals
 
-- **Unit Tests**: 90%+ coverage for utility functions
-- **Component Tests**: 80%+ coverage for UI components
-- **Integration Tests**: Cover all major user workflows
+- **Unit Tests**: 90%+ coverage cho utility functions
+- **Component Tests**: 80%+ coverage cho UI components
+- **Integration Tests**: Cover tất cả major user workflows
 - **E2E Tests**: Cover critical user journeys
 
-## 📊 Performance Monitoring
+## 📊 Giám Sát Hiệu Suất / Performance Monitoring
 
-### Key Metrics to Monitor
+### Metrics Quan Trọng / Key Metrics to Monitor
 
-1. **Rendering Performance**
-   - Frame rate (target: 60 FPS)
+1. **Hiệu Suất Rendering / Rendering Performance**
+   - Frame rate (mục tiêu: 60 FPS)
    - Render time per frame
    - Memory usage
    - GPU utilization
 
-2. **Application Performance**
+2. **Hiệu Suất Ứng Dụng / Application Performance**
    - Bundle size
    - Load time
    - Time to interactive
    - Core Web Vitals
 
-3. **User Experience**
+3. **Trải Nghiệm Người Dùng / User Experience**
    - Error rates
    - User engagement
    - Feature usage
    - Performance across devices
 
-### Performance Monitoring Tools
+### Công Cụ Giám Sát / Performance Monitoring Tools
 
-#### Built-in Monitoring
+#### Giám Sát Tích Hợp / Built-in Monitoring
 
 \`\`\`typescript
 // Performance monitoring utility
@@ -338,33 +351,44 @@ class PerformanceMonitor {
       })
     }
   }
+  
+  measureExportPerformance(format: string, pointCount: number) {
+    const startTime = performance.now()
+    return {
+      end: () => {
+        const duration = performance.now() - startTime
+        console.log(`Export ${format} (${pointCount} points): ${duration.toFixed(2)}ms`)
+      }
+    }
+  }
 }
 \`\`\`
 
-#### External Tools
+#### Công Cụ Bên Ngoài / External Tools
 
 1. **Lighthouse**: Web performance auditing
 2. **Chrome DevTools**: Detailed performance profiling
-3. **Sentry**: Error tracking and performance monitoring
+3. **Sentry**: Error tracking và performance monitoring
 4. **Google Analytics**: User behavior tracking
 
-### Performance Optimization Checklist
+### Checklist Tối Ưu Hiệu Suất / Performance Optimization Checklist
 
-- [ ] Bundle size analysis with `npm run analyze`
-- [ ] Image optimization and lazy loading
-- [ ] Code splitting for large components
-- [ ] Service worker for caching
-- [ ] CDN for static assets
+- [ ] Bundle size analysis với `npm run analyze`
+- [ ] Image optimization và lazy loading
+- [ ] Code splitting cho large components
+- [ ] Service worker cho caching
+- [ ] CDN cho static assets
 - [ ] Gzip/Brotli compression
-- [ ] Tree shaking for unused code
-- [ ] Proper memoization of expensive calculations
+- [ ] Tree shaking cho unused code
+- [ ] Proper memoization của expensive calculations
+- [ ] Optimize export functions cho large datasets
 
-## 🚀 Deployment Process
+## 🚀 Quy Trình Deployment / Deployment Process
 
-### Pre-deployment Checklist
+### Checklist Trước Deployment / Pre-deployment Checklist
 
 \`\`\`bash
-# 1. Run all tests
+# 1. Chạy tất cả tests
 npm test
 
 # 2. Type checking
@@ -384,24 +408,27 @@ npm audit
 
 # 7. Dependency check
 npm outdated
+
+# 8. Test export functionality
+npm run test:exports
 \`\`\`
 
-### Deployment Environments
+### Môi Trường Deployment / Deployment Environments
 
 #### Development
-- **URL**: `https://dev-ifs3d.vercel.app`
+- **URL**: `https://dev-ifs3d-explorer.vercel.app`
 - **Branch**: `develop`
 - **Auto-deploy**: On push to develop
 - **Features**: Debug mode, verbose logging
 
 #### Staging
-- **URL**: `https://staging-ifs3d.vercel.app`
+- **URL**: `https://staging-ifs3d-explorer.vercel.app`
 - **Branch**: `staging`
 - **Auto-deploy**: On push to staging
 - **Features**: Production-like environment, testing
 
 #### Production
-- **URL**: `https://ifs3d.com`
+- **URL**: `https://ifs3d-explorer.com`
 - **Branch**: `main`
 - **Auto-deploy**: On push to main (with approval)
 - **Features**: Optimized build, monitoring
@@ -427,43 +454,37 @@ npm run health-check
 \`\`\`bash
 # Production environment variables
 NEXT_PUBLIC_APP_ENV=production
-NEXT_PUBLIC_API_URL=https://api.ifs3d.com
+NEXT_PUBLIC_API_URL=https://api.ifs3d-explorer.com
 NEXT_PUBLIC_SENTRY_DSN=your_sentry_dsn
 NEXT_PUBLIC_GA_ID=your_ga_id
+NEXT_PUBLIC_VERSION=1.0.0
 \`\`\`
 
-### Monitoring Deployment
+## 🔧 Khắc Phục Sự Cố / Troubleshooting
 
-1. **Health Checks**: Automated endpoint monitoring
-2. **Error Tracking**: Real-time error notifications
-3. **Performance Monitoring**: Core Web Vitals tracking
-4. **User Feedback**: In-app feedback collection
-
-## 🔧 Troubleshooting
-
-### Common Issues and Solutions
+### Vấn Đề Thường Gặp / Common Issues and Solutions
 
 #### Build Issues
 
-**Problem**: TypeScript compilation errors
+**Vấn Đề**: TypeScript compilation errors
 \`\`\`bash
-# Solution: Clear cache and reinstall
+# Giải pháp: Clear cache và reinstall
 rm -rf node_modules package-lock.json
 npm install
 npm run type-check
 \`\`\`
 
-**Problem**: Memory issues during build
+**Vấn Đề**: Memory issues during build
 \`\`\`bash
-# Solution: Increase Node.js memory limit
+# Giải pháp: Increase Node.js memory limit
 NODE_OPTIONS="--max-old-space-size=4096" npm run build
 \`\`\`
 
 #### Runtime Issues
 
-**Problem**: Three.js WebGL context lost
+**Vấn Đề**: Three.js WebGL context lost
 \`\`\`typescript
-// Solution: Handle context restoration
+// Giải pháp: Handle context restoration
 canvas.addEventListener('webglcontextlost', (event) => {
   event.preventDefault()
   console.log('WebGL context lost')
@@ -475,9 +496,9 @@ canvas.addEventListener('webglcontextrestored', () => {
 })
 \`\`\`
 
-**Problem**: Memory leaks in 3D rendering
+**Vấn Đề**: Memory leaks in 3D rendering
 \`\`\`typescript
-// Solution: Proper cleanup
+// Giải pháp: Proper cleanup
 useEffect(() => {
   return () => {
     // Dispose geometries
@@ -495,26 +516,31 @@ useEffect(() => {
 }, [])
 \`\`\`
 
-#### Performance Issues
+#### Export Issues
 
-**Problem**: Low frame rate
-- Reduce iteration count
-- Disable advanced rendering features
-- Check for memory leaks
-- Profile with Chrome DevTools
-
-**Problem**: High memory usage
-- Implement object pooling
-- Dispose unused resources
-- Optimize texture sizes
-- Use efficient data structures
+**Vấn Đề**: Large file export failures
+\`\`\`typescript
+// Giải pháp: Implement chunked export
+const exportInChunks = async (points: Point[], chunkSize = 100000) => {
+  const chunks = []
+  for (let i = 0; i < points.length; i += chunkSize) {
+    chunks.push(points.slice(i, i + chunkSize))
+  }
+  
+  // Process chunks with delays to prevent blocking
+  for (const chunk of chunks) {
+    await processChunk(chunk)
+    await new Promise(resolve => setTimeout(resolve, 10))
+  }
+}
+\`\`\`
 
 ### Debug Tools
 
 #### Development Tools
 
 \`\`\`typescript
-// Debug utility for development
+// Debug utility cho development
 const DEBUG = process.env.NODE_ENV === 'development'
 
 export const debug = {
@@ -522,66 +548,23 @@ export const debug = {
   warn: (...args: any[]) => DEBUG && console.warn(...args),
   error: (...args: any[]) => DEBUG && console.error(...args),
   time: (label: string) => DEBUG && console.time(label),
-  timeEnd: (label: string) => DEBUG && console.timeEnd(label)
+  timeEnd: (label: string) => DEBUG && console.timeEnd(label),
+  export: (format: string, size: number) => DEBUG && console.log(`Export ${format}: ${size} points`)
 }
 \`\`\`
 
-#### Performance Profiling
-
-\`\`\`typescript
-// Performance profiler
-export class Profiler {
-  private marks = new Map<string, number>()
-  
-  start(name: string) {
-    this.marks.set(name, performance.now())
-  }
-  
-  end(name: string) {
-    const start = this.marks.get(name)
-    if (start) {
-      const duration = performance.now() - start
-      console.log(`${name}: ${duration.toFixed(2)}ms`)
-      this.marks.delete(name)
-    }
-  }
-}
-\`\`\`
-
-### Logging Strategy
-
-#### Log Levels
-
-1. **ERROR**: Critical issues requiring immediate attention
-2. **WARN**: Potential issues that should be monitored
-3. **INFO**: General application flow information
-4. **DEBUG**: Detailed information for debugging
-
-#### Log Format
-
-\`\`\`typescript
-interface LogEntry {
-  timestamp: string
-  level: 'ERROR' | 'WARN' | 'INFO' | 'DEBUG'
-  message: string
-  context?: Record<string, any>
-  userId?: string
-  sessionId?: string
-}
-\`\`\`
-
-## 🔒 Security Considerations
+## 🔒 Bảo Mật / Security Considerations
 
 ### Security Checklist
 
-- [ ] **Input Validation**: Sanitize all user inputs
-- [ ] **XSS Prevention**: Use proper escaping for dynamic content
-- [ ] **CSRF Protection**: Implement CSRF tokens for forms
+- [ ] **Input Validation**: Sanitize tất cả user inputs
+- [ ] **XSS Prevention**: Sử dụng proper escaping cho dynamic content
+- [ ] **File Upload Security**: Validate file types và sizes
 - [ ] **Content Security Policy**: Configure CSP headers
 - [ ] **Dependency Security**: Regular security audits
 - [ ] **Environment Variables**: Secure sensitive configuration
-- [ ] **HTTPS**: Enforce HTTPS in production
-- [ ] **Error Handling**: Don't expose sensitive information
+- [ ] **HTTPS**: Enforce HTTPS trong production
+- [ ] **Error Handling**: Không expose sensitive information
 
 ### Security Monitoring
 
@@ -593,20 +576,19 @@ export const securityLogger = {
     // Send to security monitoring service
   },
   
-  logAuthEvent(type: 'login' | 'logout' | 'failed_login', userId?: string) {
-    console.info('Auth Event:', { type, userId, timestamp: new Date().toISOString() })
+  logFileExport(format: string, size: number, userId?: string) {
+    console.info('File Export:', { format, size, userId, timestamp: new Date().toISOString() })
+  },
+  
+  logLargeExport(format: string, pointCount: number) {
+    if (pointCount > 1000000) {
+      console.warn('Large Export Detected:', { format, pointCount })
+    }
   }
 }
 \`\`\`
 
-### Regular Security Tasks
-
-1. **Weekly**: Dependency vulnerability scan
-2. **Monthly**: Security audit of new features
-3. **Quarterly**: Penetration testing
-4. **Annually**: Comprehensive security review
-
-## 📈 Monitoring and Analytics
+## 📈 Giám Sát và Phân Tích / Monitoring and Analytics
 
 ### Analytics Implementation
 
@@ -619,95 +601,98 @@ export const analytics = {
     }
   },
   
-  page(path: string) {
-    if (typeof window !== 'undefined' && window.gtag) {
-      window.gtag('config', 'GA_MEASUREMENT_ID', {
-        page_path: path
-      })
-    }
+  trackExport(format: string, pointCount: number, fileSize: number) {
+    this.track('file_export', {
+      format,
+      point_count: pointCount,
+      file_size: fileSize
+    })
+  },
+  
+  trackFractalGeneration(type: string, iterations: number, duration: number) {
+    this.track('fractal_generation', {
+      fractal_type: type,
+      iterations,
+      generation_time: duration
+    })
   }
 }
 \`\`\`
 
-### Key Metrics to Track
+### Key Metrics để Track
 
 1. **User Engagement**
    - Session duration
-   - Pages per session
-   - Bounce rate
-   - Feature usage
+   - Fractal generations per session
+   - Export usage by format
+   - Feature adoption rates
 
 2. **Performance Metrics**
-   - Page load time
-   - Time to interactive
-   - Core Web Vitals
+   - Generation time by fractal type
+   - Export time by format and size
+   - Memory usage patterns
    - Error rates
 
-3. **Business Metrics**
+3. **Educational Metrics**
+   - Preset usage patterns
+   - Help panel interactions
+   - Language preferences
    - User retention
-   - Feature adoption
-   - Export usage
-   - User feedback
 
-### Monitoring Dashboard
+## 📝 Lịch Trình Bảo Trì / Maintenance Schedule
 
-Create a monitoring dashboard that includes:
-
-- Real-time error rates
-- Performance metrics
-- User activity
-- System health
-- Deployment status
-
-## 📝 Maintenance Schedule
-
-### Daily Tasks
-- [ ] Monitor error rates and performance
+### Nhiệm Vụ Hàng Ngày / Daily Tasks
+- [ ] Monitor error rates và performance
 - [ ] Review user feedback
 - [ ] Check deployment status
+- [ ] Monitor export success rates
 
-### Weekly Tasks
+### Nhiệm Vụ Hàng Tuần / Weekly Tasks
 - [ ] Dependency updates (non-breaking)
 - [ ] Performance analysis
 - [ ] Security scan
 - [ ] Backup verification
+- [ ] Export functionality testing
 
-### Monthly Tasks
+### Nhiệm Vụ Hàng Tháng / Monthly Tasks
 - [ ] Major dependency updates
 - [ ] Performance optimization review
 - [ ] Security audit
 - [ ] User analytics review
+- [ ] Documentation updates
 
-### Quarterly Tasks
+### Nhiệm Vụ Hàng Quý / Quarterly Tasks
 - [ ] Architecture review
 - [ ] Technology stack evaluation
 - [ ] Comprehensive testing
-- [ ] Documentation updates
+- [ ] Export format compatibility check
+- [ ] Educational content review
 
-### Annual Tasks
+### Nhiệm Vụ Hàng Năm / Annual Tasks
 - [ ] Major version upgrades
 - [ ] Security penetration testing
 - [ ] Performance benchmarking
 - [ ] Technology roadmap planning
+- [ ] User survey và feedback collection
 
-## 🆘 Emergency Procedures
+## 🆘 Quy Trình Khẩn Cấp / Emergency Procedures
 
 ### Incident Response
 
-1. **Immediate Response** (0-15 minutes)
-   - Assess severity
-   - Implement hotfix if available
-   - Notify stakeholders
+1. **Phản Ứng Ngay Lập Tức** (0-15 phút)
+   - Đánh giá mức độ nghiêm trọng
+   - Implement hotfix nếu có
+   - Thông báo stakeholders
 
-2. **Short-term Response** (15 minutes - 2 hours)
-   - Investigate root cause
+2. **Phản Ứng Ngắn Hạn** (15 phút - 2 giờ)
+   - Điều tra root cause
    - Implement temporary solution
    - Monitor system stability
 
-3. **Long-term Response** (2+ hours)
+3. **Phản Ứng Dài Hạn** (2+ giờ)
    - Develop permanent fix
    - Test thoroughly
-   - Deploy and monitor
+   - Deploy và monitor
 
 ### Rollback Procedures
 
@@ -715,39 +700,97 @@ Create a monitoring dashboard that includes:
 # Quick rollback to previous version
 vercel --prod --force
 
-# Database rollback (if applicable)
-npm run db:rollback
-
 # Clear CDN cache
 npm run cache:clear
+
+# Notify users of temporary service disruption
+npm run notify:maintenance
 \`\`\`
 
 ### Communication Templates
 
-#### Incident Notification
+#### Thông Báo Sự Cố / Incident Notification
 \`\`\`
-🚨 INCIDENT ALERT
-Severity: [HIGH/MEDIUM/LOW]
-Service: IFS 3D Attractor
-Issue: [Brief description]
-Impact: [User impact description]
-ETA: [Estimated resolution time]
-Updates: [Status page URL]
+🚨 CẢNH BÁO SỰ CỐ / INCIDENT ALERT
+Mức độ / Severity: [HIGH/MEDIUM/LOW]
+Dịch vụ / Service: IFS 3D Fractal Explorer
+Vấn đề / Issue: [Mô tả ngắn gọn]
+Tác động / Impact: [Mô tả tác động người dùng]
+ETA: [Thời gian dự kiến giải quyết]
+Cập nhật / Updates: [Status page URL]
 \`\`\`
 
-#### Resolution Notification
+#### Thông Báo Giải Quyết / Resolution Notification
 \`\`\`
-✅ INCIDENT RESOLVED
-Service: IFS 3D Attractor
-Issue: [Brief description]
-Resolution: [What was fixed]
-Duration: [Total downtime]
-Next Steps: [Prevention measures]
+✅ SỰ CỐ ĐÃ ĐƯỢC GIẢI QUYẾT / INCIDENT RESOLVED
+Dịch vụ / Service: IFS 3D Fractal Explorer
+Vấn đề / Issue: [Mô tả ngắn gọn]
+Giải pháp / Resolution: [Những gì đã được sửa]
+Thời gian / Duration: [Tổng thời gian downtime]
+Bước tiếp theo / Next Steps: [Biện pháp phòng ngừa]
+\`\`\`
+
+## 🎓 Hướng Dẫn Cho Nhà Phát Triển Mới / Guide for New Developers
+
+### Onboarding Checklist
+
+- [ ] Setup development environment
+- [ ] Read codebase documentation
+- [ ] Understand fractal mathematics basics
+- [ ] Review export format specifications
+- [ ] Complete first bug fix or feature
+- [ ] Pair programming session với senior developer
+
+### Tài Nguyên Học Tập / Learning Resources
+
+#### Fractal Mathematics
+- "The Fractal Geometry of Nature" - Benoit Mandelbrot
+- "Fractals Everywhere" - Michael Barnsley
+- Online courses về fractal geometry
+
+#### Technical Skills
+- Three.js documentation
+- React Three Fiber tutorials
+- WebGL fundamentals
+- File format specifications (PLY, LAS, FBX, OBJ)
+
+#### Code Style Guide
+
+\`\`\`typescript
+// Naming conventions
+const fractalPoints = []        // camelCase for variables
+const SIERPINSKI_PRESET = {}   // UPPER_CASE for constants
+interface FractalConfig {}     // PascalCase for types
+
+// Function documentation
+/**
+ * Generates IFS fractal points
+ * @param config - Fractal configuration
+ * @param iterations - Number of iterations
+ * @returns Array of 3D points
+ */
+function generateFractal(config: FractalConfig, iterations: number): Point3D[] {
+  // Implementation
+}
+
+// Error handling
+try {
+  const result = await exportToLAS(points)
+  return result
+} catch (error) {
+  console.error('Export failed:', error)
+  throw new Error(`LAS export failed: ${error.message}`)
+}
 \`\`\`
 
 ---
 
-This maintenance guide should be reviewed and updated quarterly to ensure it remains current with the evolving codebase and infrastructure.
+Hướng dẫn bảo trì này nên được review và cập nhật hàng quý để đảm bảo nó luôn phù hợp với codebase và infrastructure đang phát triển.
 
-**Last Updated**: [Current Date]
-**Next Review**: [Date + 3 months]
+*This maintenance guide should be reviewed and updated quarterly to ensure it remains current with the evolving codebase and infrastructure.*
+
+**Cập Nhật Lần Cuối / Last Updated**: [Current Date]
+**Review Tiếp Theo / Next Review**: [Date + 3 months]
+
+**Được tạo bởi / Created by**: Nguyễn Ngọc Phúc và Mai Thế Duy
+**Cho / For**: Cộng đồng nghiên cứu fractal / Fractal research community

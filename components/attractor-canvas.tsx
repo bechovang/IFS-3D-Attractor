@@ -46,53 +46,75 @@ function BezierSurface() {
   )
 }
 
-// Thêm component AxesHelper
+// Enhanced AxesHelper with beautiful 3D arrows
 function AxesHelper() {
-  const axesGeometry = useMemo(() => {
-    // X Axis - Red
-    const xGeometry = new THREE.BufferGeometry()
-    xGeometry.setAttribute("position", new THREE.Float32BufferAttribute([-20, 0, 0, 20, 0, 0], 3))
+  const arrowGeometry = useMemo(() => {
+    // Create arrow shaft (cylinder)
+    const shaftGeometry = new THREE.CylinderGeometry(0.08, 0.08, 16, 12)
 
-    // Y Axis - Green
-    const yGeometry = new THREE.BufferGeometry()
-    yGeometry.setAttribute("position", new THREE.Float32BufferAttribute([0, -20, 0, 0, 20, 0], 3))
+    // Create arrow head (cone)
+    const headGeometry = new THREE.ConeGeometry(0.3, 1.5, 12)
 
-    // Z Axis - Blue
-    const zGeometry = new THREE.BufferGeometry()
-    zGeometry.setAttribute("position", new THREE.Float32BufferAttribute([0, 0, -20, 0, 0, 20], 3))
-
-    return { xGeometry, yGeometry, zGeometry }
+    return { shaftGeometry, headGeometry }
   }, [])
 
   return (
     <group>
-      {/* X Axis - Red */}
-      <line geometry={axesGeometry.xGeometry}>
-        <lineBasicMaterial color="red" />
-      </line>
+      {/* X Axis - Red Arrow */}
+      <group position={[8, 0, 0]} rotation={[0, 0, -Math.PI / 2]}>
+        {/* Shaft */}
+        <mesh geometry={arrowGeometry.shaftGeometry}>
+          <meshBasicMaterial color="#ff3333" />
+        </mesh>
+        {/* Head */}
+        <mesh position={[0, 8.75, 0]} geometry={arrowGeometry.headGeometry}>
+          <meshBasicMaterial color="#ff1111" />
+        </mesh>
+        {/* Label sphere */}
+        <mesh position={[0, 10.5, 0]}>
+          <sphereGeometry args={[0.15, 8, 8]} />
+          <meshBasicMaterial color="#ff3333" />
+        </mesh>
+      </group>
 
-      {/* Y Axis - Green */}
-      <line geometry={axesGeometry.yGeometry}>
-        <lineBasicMaterial color="green" />
-      </line>
+      {/* Y Axis - Green Arrow */}
+      <group position={[0, 8, 0]}>
+        {/* Shaft */}
+        <mesh geometry={arrowGeometry.shaftGeometry}>
+          <meshBasicMaterial color="#33ff33" />
+        </mesh>
+        {/* Head */}
+        <mesh position={[0, 8.75, 0]} geometry={arrowGeometry.headGeometry}>
+          <meshBasicMaterial color="#11ff11" />
+        </mesh>
+        {/* Label sphere */}
+        <mesh position={[0, 10.5, 0]}>
+          <sphereGeometry args={[0.15, 8, 8]} />
+          <meshBasicMaterial color="#33ff33" />
+        </mesh>
+      </group>
 
-      {/* Z Axis - Blue */}
-      <line geometry={axesGeometry.zGeometry}>
-        <lineBasicMaterial color="blue" />
-      </line>
+      {/* Z Axis - Blue Arrow */}
+      <group position={[0, 0, 8]} rotation={[Math.PI / 2, 0, 0]}>
+        {/* Shaft */}
+        <mesh geometry={arrowGeometry.shaftGeometry}>
+          <meshBasicMaterial color="#3333ff" />
+        </mesh>
+        {/* Head */}
+        <mesh position={[0, 8.75, 0]} geometry={arrowGeometry.headGeometry}>
+          <meshBasicMaterial color="#1111ff" />
+        </mesh>
+        {/* Label sphere */}
+        <mesh position={[0, 10.5, 0]}>
+          <sphereGeometry args={[0.15, 8, 8]} />
+          <meshBasicMaterial color="#3333ff" />
+        </mesh>
+      </group>
 
-      {/* Axis Labels using spheres */}
-      <mesh position={[21, 0, 0]}>
-        <sphereGeometry args={[0.3, 8, 8]} />
-        <meshBasicMaterial color="red" />
-      </mesh>
-      <mesh position={[0, 21, 0]}>
-        <sphereGeometry args={[0.3, 8, 8]} />
-        <meshBasicMaterial color="green" />
-      </mesh>
-      <mesh position={[0, 0, 21]}>
-        <sphereGeometry args={[0.3, 8, 8]} />
-        <meshBasicMaterial color="blue" />
+      {/* Origin point */}
+      <mesh position={[0, 0, 0]}>
+        <sphereGeometry args={[0.2, 12, 12]} />
+        <meshBasicMaterial color="#ffffff" />
       </mesh>
     </group>
   )
@@ -121,7 +143,7 @@ function OptimizedPointCloud({
     geo.setAttribute("position", new THREE.BufferAttribute(points, 3))
     geo.setAttribute("color", new THREE.BufferAttribute(colors, 3))
     return geo
-  }, [points, colors])
+  }, [])
 
   // Rotation chỉ khi autoRotate = true và không trong chế độ render cao cấp
   useFrame((state, delta) => {

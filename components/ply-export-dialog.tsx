@@ -5,6 +5,7 @@ import { useIFS } from "./ifs-context"
 import { useI18n } from "./i18n-context"
 import { exportPLY, estimatePLYFileSize } from "../utils/ply-exporter"
 import { exportFBX, exportOBJ, estimateFileSize } from "../utils/fbx-exporter"
+import { exportLAS, exportLAZ, estimateLASFileSize } from "../utils/las-exporter"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -32,6 +33,24 @@ const FILE_FORMATS = [
     supports: ["points", "colors"],
     software: ["MeshLab", "CloudCompare", "Blender"],
     recommended: "Point clouds, research",
+  },
+  {
+    value: "las",
+    label: "LAS",
+    description: "LiDAR standard format, widely supported",
+    icon: "📡",
+    supports: ["points", "colors", "classification"],
+    software: ["CloudCompare", "QGIS", "ArcGIS", "LAStools"],
+    recommended: "GIS, LiDAR processing",
+  },
+  {
+    value: "laz",
+    label: "LAZ",
+    description: "Compressed LAS format, smaller files",
+    icon: "🗜️",
+    supports: ["points", "colors", "classification"],
+    software: ["CloudCompare", "QGIS", "ArcGIS", "LAStools"],
+    recommended: "GIS, LiDAR processing, sharing",
   },
   {
     value: "obj",
@@ -111,9 +130,11 @@ export default function ExportDialog({ isOpen, onClose }: ExportDialogProps) {
   const { attractorPoints, pointColors, matrices } = useIFS()
   const { t } = useI18n()
   const [filename, setFilename] = useState("attractor")
-  const [fileFormat, setFileFormat] = useState<"ply" | "obj" | "fbx">("ply")
+  const [fileFormat, setFileFormat] = useState<"ply" | "las" | "laz" | "obj" | "fbx">("ply")
   const [includeColors, setIncludeColors] = useState(true)
   const [plyFormat, setPlyFormat] = useState<"ascii" | "binary">("binary")
+  const [lasPointFormat, setLasPointFormat] = useState<number>(2) // Default to format 2 (XYZ + RGB)
+  const [lazCompression, setLazCompression] = useState<number>(7) // Default compression level
   const [scale, setScale] = useState(1.0)
   const [usePresets, setUsePresets] = useState(true)
   const [selectedPreset, setSelectedPreset] = useState("standard")
@@ -140,10 +161,19 @@ export default function ExportDialog({ isOpen, onClose }: ExportDialogProps) {
   const currentPointCount = getCurrentPointCount()
   const currentFormat = FILE_FORMATS.find((f) => f.value === fileFormat)!
 
-  const estimatedSize =
-    fileFormat === "ply"
-      ? estimatePLYFileSize(currentPointCount, includeColors && hasColors, plyFormat)
-      : estimateFileSize(currentPointCount, includeColors && hasColors, fileFormat, generateMesh)
+  // Estimate file size based on format
+  const estimatedSize = (() => {
+    switch (fileFormat) {
+      case "ply":
+        return estimatePLYFileSize(currentPointCount, includeColors && hasColors, plyFormat)
+      case "las":
+        return estimateLASFileSize(currentPointCount, includeColors && hasColors, "las")
+      case "laz":
+        return estimateLASFileSize(currentPointCount, includeColors && hasColors, "laz")
+      default:
+        return estimateFileSize(currentPointCount, includeColors && hasColors, fileFormat, generateMesh)
+    }
+  })()
 
   const formatFileSize = (bytes: number) => {
     if (bytes < 1024) return `${bytes} B`
@@ -231,8 +261,64 @@ export default function ExportDialog({ isOpen, onClose }: ExportDialogProps) {
             scale,
           })
         }
+      } else if (fileFormat === "las" || fileFormat === "laz") {
+        // LAS/LAZ export logic
+        let exportPoints: Float32Array
+        let exportColors: Float32Array | undefined
+
+        if (currentPointCount >= 1000000 || !attractorPoints) {
+          // Generate high-density points
+          const { positions, colors } = await import("../utils/ply-exporter").then((module) =>
+            module.generateHighDensityPoints(matrices, currentPointCount),
+          )
+          exportPoints = positions
+          exportColors = colors
+        } else {
+          // Use existing points
+          exportPoints = attractorPoints
+          exportColors = pointColors
+
+          if (currentPointCount < totalPoints) {
+            const sampledPoints = new Float32Array(currentPointCount * 3)
+            const sampledColors = pointColors ? new Float32Array(currentPointCount * 3) : undefined
+            const step = totalPoints / currentPointCount
+
+            for (let i = 0; i < currentPointCount; i++) {
+              const sourceIndex = Math.floor(i * step)
+              sampledPoints[i * 3] = attractorPoints[sourceIndex * 3]
+              sampledPoints[i * 3 + 1] = attractorPoints[sourceIndex * 3 + 1]
+              sampledPoints[i * 3 + 2] = attractorPoints[sourceIndex * 3 + 2]
+
+              if (sampledColors && pointColors) {
+                sampledColors[i * 3] = pointColors[sourceIndex * 3]
+                sampledColors[i * 3 + 1] = pointColors[sourceIndex * 3 + 1]
+                sampledColors[i * 3 + 2] = pointColors[sourceIndex * 3 + 2]
+              }
+            }
+            exportPoints = sampledPoints
+            exportColors = sampledColors
+          }
+        }
+
+        // Export based on format
+        if (fileFormat === "las") {
+          result = exportLAS(exportPoints, includeColors ? exportColors : undefined, {
+            filename: finalFilename,
+            includeColors: includeColors && hasColors,
+            scale,
+            pointFormat: includeColors && hasColors ? lasPointFormat : 0,
+          })
+        } else {
+          result = exportLAZ(exportPoints, includeColors ? exportColors : undefined, {
+            filename: finalFilename,
+            includeColors: includeColors && hasColors,
+            scale,
+            pointFormat: includeColors && hasColors ? lasPointFormat : 0,
+            compression: lazCompression,
+          })
+        }
       } else {
-        // FBX/OBJ export logic
+        // FBX/OBJ export logic (existing)
         let exportPoints: Float32Array
         let exportColors: Float32Array | undefined
 
@@ -401,7 +487,9 @@ export default function ExportDialog({ isOpen, onClose }: ExportDialogProps) {
                   </div>
                   <div className="flex justify-between">
                     <span>Output Type:</span>
-                    <span className="font-medium">{generateMesh ? "Mesh" : "Point Cloud"}</span>
+                    <span className="font-medium">
+                      {generateMesh && (fileFormat === "obj" || fileFormat === "fbx") ? "Mesh" : "Point Cloud"}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -561,6 +649,62 @@ export default function ExportDialog({ isOpen, onClose }: ExportDialogProps) {
                 </div>
               )}
 
+              {/* LAS-specific settings */}
+              {fileFormat === "las" && (
+                <div>
+                  <Label className="text-sm font-medium">LAS Point Format</Label>
+                  <Select
+                    value={lasPointFormat.toString()}
+                    onValueChange={(value) => setLasPointFormat(Number.parseInt(value))}
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="0">Format 0 (Basic XYZ)</SelectItem>
+                      <SelectItem value="2">Format 2 (XYZ + RGB)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              {/* LAZ-specific settings */}
+              {fileFormat === "laz" && (
+                <div className="space-y-3">
+                  <div>
+                    <Label className="text-sm font-medium">LAZ Point Format</Label>
+                    <Select
+                      value={lasPointFormat.toString()}
+                      onValueChange={(value) => setLasPointFormat(Number.parseInt(value))}
+                    >
+                      <SelectTrigger className="mt-1">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="0">Format 0 (Basic XYZ)</SelectItem>
+                        <SelectItem value="2">Format 2 (XYZ + RGB)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label className="text-sm font-medium">Compression Level: {lazCompression}</Label>
+                    <Slider
+                      value={[lazCompression]}
+                      onValueChange={([value]) => setLazCompression(value)}
+                      min={1}
+                      max={9}
+                      step={1}
+                      className="mt-1"
+                    />
+                    <div className="flex justify-between text-xs text-gray-600 mt-1">
+                      <span>Faster</span>
+                      <span>Smaller</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Mesh generation for FBX/OBJ */}
               {(fileFormat === "fbx" || fileFormat === "obj") && (
                 <div className="space-y-3">
@@ -638,7 +782,7 @@ export default function ExportDialog({ isOpen, onClose }: ExportDialogProps) {
                       {" • "}
                       {formatFileSize(exportResult.fileSize)}
                       {" • "}
-                      {exportResult.format} format
+                      {exportResult.format || fileFormat.toUpperCase()} format
                     </div>
                   </div>
                 ) : (
@@ -673,6 +817,18 @@ export default function ExportDialog({ isOpen, onClose }: ExportDialogProps) {
                     <div>• CloudCompare (Surface Reconstruction)</div>
                     <div>• Blender (Import PLY)</div>
                     <div>• Open3D (Python library)</div>
+                  </div>
+                </div>
+
+                <div>
+                  <strong>LAS/LAZ Format:</strong>
+                  <div className="mt-1 grid grid-cols-2 gap-2">
+                    <div>• CloudCompare (Native support)</div>
+                    <div>• QGIS (with LAStools plugin)</div>
+                    <div>• ArcGIS (Native support)</div>
+                    <div>• LAStools (Processing suite)</div>
+                    <div>• PDAL (Python library)</div>
+                    <div>• Potree (Web visualization)</div>
                   </div>
                 </div>
 
