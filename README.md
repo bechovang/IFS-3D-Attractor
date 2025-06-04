@@ -15,8 +15,8 @@ Một ứng dụng web tương tác mạnh mẽ để tạo và khám phá các 
 ## 👥 Nhóm Phát Triển / Development Team
 
 **Được phát triển bởi / Developed by:**
-- **Nguyễn Ngọc Phúc** 
-- **Mai Thế Duy** 
+- **Nguyễn Ngọc Phúc** - Lead Developer & Fractal Mathematics Specialist
+- **Mai Thế Duy** - UI/UX Designer & Frontend Developer
 
 **Dành cho / Target Audience:**
 - 🎓 Sinh viên toán học và khoa học máy tính
