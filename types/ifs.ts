@@ -35,10 +35,21 @@ export interface IFSSettings {
   volumetricOpacity?: number
   volumetricGamma?: number
   volumetricIntensity?: number
+  backgroundType?: string // Added in a previous step, ensure it's here
 }
 
 export interface Point3D {
   x: number
   y: number
   z: number
+}
+
+// New type for saved fractals
+export interface SavedIFS {
+  id: string // Unique ID, can be a timestamp
+  name: string
+  matrices: IFSMatrix[]
+  settings: IFSSettings
+  timestamp: number // Timestamp of when it was saved
+  // thumbnail?: string; // Optional: for a data URL of a small preview image
 }

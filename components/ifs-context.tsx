@@ -1,7 +1,7 @@
 "use client"
 
-import { createContext, useContext, useState, useCallback, type ReactNode } from "react"
-import type { IFSMatrix, IFSSettings } from "@/types/ifs"
+import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from "react"
+import type { IFSMatrix, IFSSettings, SavedIFS } from "@/types/ifs" // Added SavedIFS
 
 interface IFSContextType {
   matrices: IFSMatrix[]
@@ -11,6 +11,7 @@ interface IFSContextType {
   pointColors: Float32Array | null
   isHighQualityRendering: boolean
   darkMode: boolean
+  savedFractals: SavedIFS[] // New state for saved fractals
   addMatrix: (newMatrix?: Partial<IFSMatrix>) => void
   removeMatrix: (id: string) => void
   updateMatrix: (id: string, matrix: Partial<IFSMatrix>) => void
@@ -20,6 +21,9 @@ interface IFSContextType {
   loadPreset: (preset: string) => void
   setHighQualityRendering: (value: boolean) => void
   toggleDarkMode: () => void
+  saveCurrentFractal: (name: string) => void // New function
+  loadSavedFractal: (id: string) => void // New function
+  deleteSavedFractal: (id: string) => void // New function
 }
 
 const IFSContext = createContext<IFSContextType | undefined>(undefined)
@@ -105,7 +109,6 @@ const defaultMatrices: IFSMatrix[] = [
   },
 ]
 
-// Optimized default settings for better performance
 const defaultSettings: IFSSettings = {
   iterations: 50000,
   skipInitial: 1000,
@@ -113,8 +116,8 @@ const defaultSettings: IFSSettings = {
   autoNormalize: true,
   pointSize: 3.0,
   colorMode: "function",
-  backgroundColor: "#f8fafc", // Light gray background
-  backgroundColorDark: "#111827", // Dark background (gray-900)
+  backgroundColor: "#f8fafc",
+  backgroundColorDark: "#111827",
   pointColor: "#00ff88",
   showBezierSurface: false,
   autoRotate: false,
@@ -122,7 +125,10 @@ const defaultSettings: IFSSettings = {
   volumetricOpacity: 0.3,
   volumetricGamma: 1.8,
   volumetricIntensity: 1.2,
+  backgroundType: "solid-black",
 }
+
+const LOCAL_STORAGE_KEY = "ifsSavedFractals"
 
 export function IFSProvider({ children }: { children: ReactNode }) {
   const [matrices, setMatrices] = useState<IFSMatrix[]>(defaultMatrices)
@@ -132,6 +138,30 @@ export function IFSProvider({ children }: { children: ReactNode }) {
   const [pointColors, setPointColors] = useState<Float32Array | null>(null)
   const [isHighQualityRendering, setIsHighQualityRendering] = useState(false)
   const [darkMode, setDarkMode] = useState(false)
+  const [savedFractals, setSavedFractals] = useState<SavedIFS[]>([])
+
+  // Load saved fractals from localStorage on mount
+  useEffect(() => {
+    try {
+      const storedFractals = localStorage.getItem(LOCAL_STORAGE_KEY)
+      if (storedFractals) {
+        setSavedFractals(JSON.parse(storedFractals))
+      }
+    } catch (error) {
+      console.error("Failed to load saved fractals from localStorage:", error)
+      // Optionally clear corrupted data
+      // localStorage.removeItem(LOCAL_STORAGE_KEY);
+    }
+  }, [])
+
+  // Save to localStorage whenever savedFractals changes
+  useEffect(() => {
+    try {
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(savedFractals))
+    } catch (error) {
+      console.error("Failed to save fractals to localStorage:", error)
+    }
+  }, [savedFractals])
 
   const toggleDarkMode = useCallback(() => {
     setDarkMode((prev) => !prev)
@@ -140,8 +170,8 @@ export function IFSProvider({ children }: { children: ReactNode }) {
   const addMatrix = useCallback(
     (newMatrix?: Partial<IFSMatrix>) => {
       const defaultMatrix: IFSMatrix = {
-        id: Date.now().toString(),
-        name: `f₅`,
+        id: Date.now().toString() + Math.random().toString(36).substring(2, 7), // more unique id
+        name: `f${matrices.length + 1}`,
         a: 1,
         c: 0,
         e: 0,
@@ -158,7 +188,6 @@ export function IFSProvider({ children }: { children: ReactNode }) {
         enabled: true,
         color: TRANSFORMATION_COLORS[matrices.length % TRANSFORMATION_COLORS.length],
       }
-
       setMatrices((prev) => [...prev, { ...defaultMatrix, ...newMatrix }])
     },
     [matrices.length],
@@ -180,26 +209,22 @@ export function IFSProvider({ children }: { children: ReactNode }) {
     setIsHighQualityRendering(value)
   }, [])
 
-  // Memoized probability normalization
-  const normalizeProbabilities = useCallback((matrices: IFSMatrix[]) => {
-    const enabledMatrices = matrices.filter((m) => m.enabled)
-    const totalProb = enabledMatrices.reduce((sum, m) => sum + m.probability, 0)
+  const normalizeProbabilities = useCallback((currentMatrices: IFSMatrix[]) => {
+    const enabledMatrices = currentMatrices.filter((m) => m.enabled)
+    if (enabledMatrices.length === 0) return currentMatrices
 
-    if (totalProb > 0) {
-      return matrices.map((m) => ({
-        ...m,
-        probability: m.enabled ? m.probability / totalProb : 0,
-      }))
+    const totalProb = enabledMatrices.reduce((sum, m) => sum + m.probability, 0)
+    if (totalProb > 0 && totalProb !== 1) {
+      // Normalize only if needed
+      return currentMatrices.map((m) => (m.enabled ? { ...m, probability: m.probability / totalProb } : m))
     }
-    return matrices
+    return currentMatrices
   }, [])
 
-  // Main generateAttractor function
   const generateAttractor = useCallback(async () => {
     setIsGenerating(true)
-    setIsHighQualityRendering(false) // Exit high quality rendering when generating new points
+    setIsHighQualityRendering(false)
 
-    // Use setTimeout to prevent blocking the main thread
     setTimeout(() => {
       try {
         const workingMatrices = settings.autoNormalize ? normalizeProbabilities(matrices) : matrices
@@ -219,7 +244,6 @@ export function IFSProvider({ children }: { children: ReactNode }) {
           z = 0
         let pointIndex = 0
 
-        // Pre-calculate cumulative probabilities
         const cumProbs: number[] = []
         let cumSum = 0
         for (const matrix of enabledMatrices) {
@@ -227,7 +251,6 @@ export function IFSProvider({ children }: { children: ReactNode }) {
           cumProbs.push(cumSum)
         }
 
-        // Pre-parse colors for better performance
         const parsedColors = enabledMatrices.map((matrix) => {
           const color = matrix.color
           return {
@@ -237,26 +260,21 @@ export function IFSProvider({ children }: { children: ReactNode }) {
           }
         })
 
-        // Optimized generation loop
         for (let i = 0; i < settings.iterations + settings.skipInitial; i++) {
-          const rand = Math.random() * cumSum
-          let chosenMatrix = enabledMatrices[0]
-          let matrixIndex = 0
-
-          // Binary search for better performance with many matrices
+          const rand = Math.random() * (cumSum > 0 ? cumSum : 1) // Ensure rand is not NaN if cumSum is 0
+          let chosenMatrixIndex = 0
           for (let j = 0; j < cumProbs.length; j++) {
             if (rand <= cumProbs[j]) {
-              chosenMatrix = enabledMatrices[j]
-              matrixIndex = j
+              chosenMatrixIndex = j
               break
             }
           }
+          const chosenMatrix = enabledMatrices[chosenMatrixIndex]
+          if (!chosenMatrix) continue // Should not happen if enabledMatrices is not empty
 
-          // Apply transformation
           const newX = chosenMatrix.a * x + chosenMatrix.c * y + chosenMatrix.e * z + chosenMatrix.tx
           const newY = chosenMatrix.b * x + chosenMatrix.d * y + chosenMatrix.f * z + chosenMatrix.ty
           const newZ = chosenMatrix.g * x + chosenMatrix.h * y + chosenMatrix.i * z + chosenMatrix.tz
-
           x = newX
           y = newY
           z = newZ
@@ -266,18 +284,15 @@ export function IFSProvider({ children }: { children: ReactNode }) {
             points[idx] = x * 5
             points[idx + 1] = y * 5
             points[idx + 2] = z * 5
-
-            const color = parsedColors[matrixIndex]
+            const color = parsedColors[chosenMatrixIndex]
             colors[idx] = color.r
             colors[idx + 1] = color.g
             colors[idx + 2] = color.b
-
             pointIndex++
           }
         }
-
-        setAttractorPoints(points)
-        setPointColors(colors)
+        setAttractorPoints(points.slice(0, pointIndex * 3))
+        setPointColors(colors.slice(0, pointIndex * 3))
       } catch (error) {
         console.error("Error generating attractor:", error)
         setAttractorPoints(null)
@@ -285,7 +300,7 @@ export function IFSProvider({ children }: { children: ReactNode }) {
       } finally {
         setIsGenerating(false)
       }
-    }, 10) // Small delay to prevent blocking
+    }, 10)
   }, [matrices, settings, normalizeProbabilities])
 
   const clearAll = useCallback(() => {
@@ -294,77 +309,53 @@ export function IFSProvider({ children }: { children: ReactNode }) {
     setPointColors(null)
   }, [])
 
-  const loadPreset = useCallback((preset: string) => {
-    switch (preset) {
+  const loadPreset = useCallback((presetName: string) => {
+    // This function might need adjustment if presets are also stored in `savedFractals`
+    // or if it's purely for hardcoded presets.
+    // For now, assuming it loads hardcoded presets:
+    switch (presetName) {
       case "default":
         setMatrices(defaultMatrices)
+        setSettings(defaultSettings)
         break
-      case "simple":
-        setMatrices([
-          {
-            id: "1",
-            name: "f₁",
-            a: 0.5,
-            c: 0,
-            e: 0,
-            tx: -0.5,
-            b: 0,
-            d: 0.5,
-            f: 0,
-            ty: 0.5,
-            g: 0,
-            h: 0,
-            i: 0.5,
-            tz: 0,
-            probability: 0.5,
-            enabled: true,
-            color: TRANSFORMATION_COLORS[0],
-          },
-          {
-            id: "2",
-            name: "f₂",
-            a: 0.5,
-            c: 0,
-            e: 0,
-            tx: 0.5,
-            b: 0,
-            d: 0.5,
-            f: 0,
-            ty: -0.5,
-            g: 0,
-            h: 0,
-            i: 0.5,
-            tz: 0,
-            probability: 0.5,
-            enabled: true,
-            color: TRANSFORMATION_COLORS[1],
-          },
-        ])
-        break
-      case "performance":
-        setMatrices([
-          {
-            id: "1",
-            name: "f₁",
-            a: 0.6,
-            c: 0,
-            e: 0,
-            tx: 0,
-            b: 0,
-            d: 0.6,
-            f: 0,
-            ty: 0,
-            g: 0,
-            h: 0,
-            i: 0.6,
-            tz: 0.3,
-            probability: 1.0,
-            enabled: true,
-            color: TRANSFORMATION_COLORS[0],
-          },
-        ])
-        break
+      // Add other hardcoded presets if any
     }
+  }, [])
+
+  // New functions for saved fractals
+  const saveCurrentFractal = useCallback(
+    (name: string) => {
+      if (!name.trim()) {
+        alert("Vui lòng nhập tên cho fractal.") // Please enter a name for the fractal.
+        return
+      }
+      const newSavedFractal: SavedIFS = {
+        id: Date.now().toString(),
+        name,
+        matrices: JSON.parse(JSON.stringify(matrices)), // Deep copy
+        settings: JSON.parse(JSON.stringify(settings)), // Deep copy
+        timestamp: Date.now(),
+      }
+      setSavedFractals((prev) => [newSavedFractal, ...prev]) // Add to the beginning of the list
+    },
+    [matrices, settings],
+  )
+
+  const loadSavedFractal = useCallback(
+    (id: string) => {
+      const fractalToLoad = savedFractals.find((f) => f.id === id)
+      if (fractalToLoad) {
+        setMatrices(JSON.parse(JSON.stringify(fractalToLoad.matrices))) // Deep copy
+        setSettings(JSON.parse(JSON.stringify(fractalToLoad.settings))) // Deep copy
+        // Optionally, regenerate attractor after loading
+        // generateAttractor(); // This might be too immediate, let user decide.
+      }
+    },
+    [savedFractals],
+  )
+
+  const deleteSavedFractal = useCallback((id: string) => {
+    setSavedFractals((prev) => prev.filter((f) => f.id !== id))
   }, [])
 
   return (
@@ -377,6 +368,7 @@ export function IFSProvider({ children }: { children: ReactNode }) {
         pointColors,
         isHighQualityRendering,
         darkMode,
+        savedFractals,
         addMatrix,
         removeMatrix,
         updateMatrix,
@@ -386,6 +378,9 @@ export function IFSProvider({ children }: { children: ReactNode }) {
         loadPreset,
         setHighQualityRendering: setHighQualityRenderingCallback,
         toggleDarkMode,
+        saveCurrentFractal,
+        loadSavedFractal,
+        deleteSavedFractal,
       }}
     >
       {children}
