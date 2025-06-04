@@ -25,8 +25,8 @@ function OrbitControlsWrapper() {
       rotateSpeed={0.4}
       maxDistance={200}
       minDistance={5}
-      enableDamping={true}
-      dampingFactor={0.05}
+      enableDamping={false} // Disabled damping for immediate response
+      // dampingFactor={0.05} // Removed as it's not needed when damping is disabled
     />
   )
 }

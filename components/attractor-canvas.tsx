@@ -143,7 +143,7 @@ function OptimizedPointCloud({
     geo.setAttribute("position", new THREE.BufferAttribute(points, 3))
     geo.setAttribute("color", new THREE.BufferAttribute(colors, 3))
     return geo
-  }, [])
+  }, [points, colors])
 
   // Rotation chỉ khi autoRotate = true và không trong chế độ render cao cấp
   useFrame((state, delta) => {
