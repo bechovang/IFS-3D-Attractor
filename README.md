@@ -1,3 +1,5 @@
+dùng web nào tạo cloud point rồi lên app này coi https://github.com/potree/PotreeDesktop
+
 # IFS 3D Fractal Explorer
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
